@@ -3,7 +3,7 @@
     "username": "ahmedalthary",
     "password": "112233",
     "database": "blogs_db",
-    "host": "127.0.0.1",
+    "host": "localhost",
     "dialect": "mssql"
   },
   "test": {
