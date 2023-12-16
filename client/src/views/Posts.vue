@@ -1,8 +1,12 @@
 <template>
     <div class="container mx-auto my-8 px-4">
+        <div class="mb-5">
+            <input class="mx-auto focus:outline-none text-[#9ca3af] bg-[#1F2937] rounded-[5px] p-3 mx-auto block w-[50%]"
+                type="text" placeholder="Search for post" v-model="searchString" @input="filterPost">
+        </div>
         <main class=" grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 " v-if="posts.length">
             <div class="max-w-sm bg-white border border-gray-200 rounded-lg shadow mx-auto dark:bg-gray-800 dark:border-gray-700"
-                v-if="Array.isArray(posts)" v-for="post in posts " :key="post.id">
+                v-if="Array.isArray(filteredPosts)" v-for="post in filteredPosts " :key="post.id">
                 <a href="#">
                     <img class="rounded-t-lg" src="../assets/img/blog1.jpg" alt="dd" />
                 </a>
@@ -25,7 +29,7 @@
                 </div>
             </div>
             <div v-else>
-                <h3>{{ posts }}</h3>
+                <h3>{{ filteredPosts }}</h3>
             </div>
         </main>
         <div v-else>
@@ -41,6 +45,8 @@ import { PostsServices } from '@/services/PostsServices';
 const posts = ref([])
 const route = useRoute()
 const router = useRouter()
+const filteredPosts = ref([])
+const searchString = ref("")
 
 async function postsData() {
     try {
@@ -61,6 +67,8 @@ async function postsData() {
     } catch (err) {
         console.log(err)
     }
+    filteredPosts.value = posts.value
+
 }
 postsData();
 
@@ -72,6 +80,23 @@ function moveTo(post) {
             uuid: route.query.uuid
         }
     })
+}
+
+
+
+
+function filterPost() {
+    if (typeof posts.value == "string") {
+        return
+    }
+    filteredPosts.value = posts.value.filter(post =>
+        post.Title.toLowerCase().includes(searchString.value.toLowerCase())
+        || post.Snippet.toLowerCase().includes(searchString.value.toLowerCase()))
+    if (filteredPosts.value.length === 0) {
+        filteredPosts.value = `No results found for '${searchString.value}'`
+    }
+
+
 }
 </script>
 
