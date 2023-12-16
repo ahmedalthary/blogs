@@ -1,4 +1,4 @@
-const { User } = require("../models");
+const { User, Sequelize } = require("../models");
 
 module.exports = {
   async register(req, res) {
@@ -6,8 +6,14 @@ module.exports = {
       const user = await User.create(req.body);
       return res.json(user);
     } catch (err) {
-      return res.status(400).json({
-        error: `Failed to create the account:${err.errors[0].message}`,
+      if (err instanceof Sequelize.ValidationError) {
+        const errorMessages = err.errors.map((error) => error.message);
+        return res.status(400).json({
+          error: `Failed to create the account: ${errorMessages.join(", ")}`,
+        });
+      }
+      return res.status(500).json({
+        error: "Failed to create the account. Please try again later.",
       });
     }
   },
