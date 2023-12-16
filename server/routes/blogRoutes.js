@@ -4,8 +4,10 @@ const postController = require("../controller/postController");
 
 router.post("/posts", postController.createPost);
 router.get("/posts", postController.allPosts);
+router.get("/posts/search", postController.searchResult);
 router.get("/posts/:uuid", postController.post);
 router.delete("/posts/:uuid", postController.deletePost);
+router.put("/posts/:uuid", postController.updatePost);
 router.put("/posts/:uuid", postController.updatePost);
 
 module.exports = router;

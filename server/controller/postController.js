@@ -11,7 +11,12 @@ module.exports = {
         });
       }
       const post = await Post.create({ Title, Snippet, Body, UserId: user.id });
-      return res.json(post);
+      // return res.json(post);
+      return res.json({
+        message:
+          "Post created successfully you will be redirect after 5 second.",
+        redirect: "Posts",
+      });
     } catch (err) {
       if (err instanceof Sequelize.ValidationError) {
         const errorMessages = err.errors.map((error) => error.message);
@@ -67,6 +72,33 @@ module.exports = {
       });
     }
   },
+  async searchResult(req, res) {
+    const searchQuery = req.query.q;
+    try {
+      if (searchQuery.length > 0) {
+        const posts = await Post.findAll({
+          where: {
+            Title: {
+              [Sequelize.Op.like]: `%${searchQuery}%`,
+            },
+          },
+          include: "User",
+        });
+        if (posts.length === 0) {
+          return res.status(400).json({
+            error: `No result for '${searchQuery}'`,
+          });
+        }
+        return res.json(posts);
+      }
+      return res.json([]);
+    } catch (err) {
+      return res.status(500).json({
+        error:
+          "Something went wrong,Unable to find results for your search, please try again later.",
+      });
+    }
+  },
   async deletePost(req, res) {
     try {
       const uuid = req.params.uuid;
@@ -74,8 +106,9 @@ module.exports = {
         where: { uuid },
       });
       return res.json({
-        message: "Post deleted successfully.",
-        redirect: "/",
+        message:
+          "Post deleted successfully you will be redirect after 5 second.",
+        redirect: "Posts",
       });
     } catch (err) {
       return res.status(500).json({
@@ -91,7 +124,6 @@ module.exports = {
       });
       return res.json({
         message: "Post updated successfully.",
-        redirect: "/",
       });
     } catch (err) {
       if (err instanceof Sequelize.ValidationError) {

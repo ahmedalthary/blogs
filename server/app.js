@@ -1,9 +1,11 @@
 const express = require("express");
+const cors = require("cors");
 const { sequelize } = require("./models");
 const userRoutes = require("./routes/userRoutes");
 const blogRoutes = require("./routes/blogRoutes");
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.use("/", userRoutes);
 app.use("/", blogRoutes);
