@@ -9,6 +9,8 @@ app.use(cors());
 
 app.use("/", userRoutes);
 app.use("/", blogRoutes);
+app.use("/images",express.static("images"));
+
 
 (async () => {
   try {

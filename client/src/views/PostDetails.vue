@@ -1,17 +1,24 @@
 <template>
     <div v-if="postDetails">
-        <div class="top-section my-8 flex justify-center gap-20 sm:gap-32 px-4 items-center">
-            <div>
-                <h2>{{ postDetails.Title }}</h2>
-                <h4>Published by {{ postDetails.User.UserName }} •
-                    {{ formatTimeAgo(postDetails.createdAt) }}
-                </h4>
-            </div>
-            <div>
-                <button class="bg-red-500 border-none text-white px-3 py-2 rounded-md mr-3"
-                    @click="update = false; open = true">Delete</button>
-                <button class=" bg-green-500 border-none text-white px-3 py-2 rounded-md"
-                    @click="update = true; open = true">Update</button>
+        <div class="top-section pt-8 pb-9 h-[300px] relative flex items-end">
+            <img :src="`http://localhost:3000/${postDetails.Image}`" class="absolute h-full w-full object-contain z-0 top-0"
+                v-if="postDetails.Image" alt="Post image">
+            <img v-else src="../assets/img/NoImagePlaceholder.png" class="absolute h-full w-full object-contain z-0 top-0"
+                alt="Post image">
+            <div class="overlay absolute w-full h-full top-0 left-0 bg-[#0000007b]"></div>
+            <div class="flex justify-center gap-20 sm:gap-32 px-4 items-center relative flex-1">
+                <div class="text-white">
+                    <h2>{{ postDetails.Title }}</h2>
+                    <h4>Published by {{ postDetails.User.UserName }} •
+                        {{ formatTimeAgo(postDetails.createdAt) }}
+                    </h4>
+                </div>
+                <div>
+                    <button class="bg-red-500 border-none text-white px-3 py-2 rounded-md sm:mr-3 mb-2 sm:mb-0"
+                        @click="update = false; open = true">Delete</button>
+                    <button class=" bg-green-500 border-none text-white px-3 py-2 rounded-md"
+                        @click="update = true; open = true">Update</button>
+                </div>
             </div>
         </div>
         <div class="bottom-section container my-8 mx-auto px-4 break-words leading-7 ">
@@ -91,6 +98,37 @@
                                             Update the post</DialogTitle>
                                         <div class="mt-2">
                                             <form class="flex flex-col gap-[10px]">
+                                                <div class="gap-4 flex items-end chang-img-box mb-4">
+                                                    <img ref="image" class="block rounded border-2 border-[#1F2937]"
+                                                        :src="`http://localhost:3000/${postDetails.Image}`"
+                                                        alt="Post image" id="display-account-img"
+                                                        v-if="postDetails.Image">
+                                                    <img ref="image" class="block rounded border-2 border-[#1F2937]"
+                                                        src="/src/assets/img/NoImagePlaceholder.png" alt="Post image"
+                                                        id="display-account-img" v-else>
+                                                    <div class="edit-button-wrapper">
+                                                        <div
+                                                            class=" border border-[#b1b1b1] transition-all duration-300 text-[#585858] font-medium rounded h-[45px] max-w-full hover:border-[#1F2937] mb-3 me-3 ">
+                                                            <input class="hidden" type="file" name="image"
+                                                                @change="uploadImage" id="account-img">
+                                                            <label
+                                                                class="flex items-center justify-center py-[0.6rem] px-[0.75rem] cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap h-full  "
+                                                                for="account-img">
+                                                                <i
+                                                                    class="fa-solid fa-arrow-up-from-bracket fa-fw inline sm:hidden"></i>
+                                                                <span class="hidden sm:inline">Choose image</span>
+
+                                                            </label>
+                                                        </div>
+                                                        <button type="button" id="reset-account-img"
+                                                            class="text-white font-medium border-0 rounded transition-all duration-300 max-h-full py-[6px] px-[30px] bg-[#1F2937] flex items-center justify-center hover:bg-[#2f4056]"
+                                                            @click="resetImage">
+                                                            <i class="fa-solid fa-rotate-left fa-fw inline sm:hidden"></i>
+                                                            <span class="hidden sm:inline">Reset</span>
+                                                        </button>
+                                                        <p class="my-0 text-[#585858]">Only JPEG, JPG, PNG are allowed</p>
+                                                    </div>
+                                                </div>
                                                 <input
                                                     class="p-[15px] border-0 bg-[#eef5fc] rounded-[5px] text-[#6a737c] caret-[#6a737c] focus:outline-none"
                                                     v-model="title" type="text" name="title" placeholder="Title">
@@ -143,6 +181,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { CheckIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
 import { PostsServices } from '@/services/PostsServices';
+const uploadedImage = ref("")
 const postDetails = ref(null)
 const title = ref("")
 const snippet = ref("")
@@ -154,7 +193,33 @@ let error = ref(null)
 const update = ref(false)
 const open = ref(false)
 const route = useRoute()
+const image = ref(null)
 
+
+function uploadImage(e) {
+    const uploadedPostImage = e.target.files[0]
+    const allowedTypes = ["jpeg", "png", "jpg"]
+    if (!allowedTypes.includes(uploadedPostImage.name.split(".").pop().toLowerCase())) {
+        image.value.src = "/src/assets/img/NoImagePlaceholder.png"
+    } else {
+
+        let currentImage = URL.createObjectURL(uploadedPostImage)
+        image.value.src = currentImage
+        image.value.onload = function () {
+            URL.revokeObjectURL(image.value.src)
+        }
+    }
+    uploadedImage.value = uploadedPostImage;
+
+
+}
+function resetImage(e) {
+    image.value.src = "/src/assets/img/placeHolder.jpg"
+    uploadedImage.value = ""
+    e.currentTarget.previousSibling.firstChild.value = ""
+
+
+}
 async function postData() {
     try {
         await new Promise((res) => setTimeout(res, 1000))
@@ -229,14 +294,13 @@ async function deletePost() {
         open.value = false
         await new Promise((res) => setTimeout(res, 300))
         console.log(response)
-        success.value = response.data.message
-        setTimeout(() => {
-
-            router.replace({
-                name: response.data.redirect,
-                query: { uuid: route.query.uuid }
-            })
-        }, 5000)
+        router.replace({
+            name: response.data.redirect,
+            query: {
+                uuid: route.query.uuid,
+                success: response.data.message,
+            }
+        })
 
     } catch (err) {
         open.value = false
@@ -256,12 +320,14 @@ async function updatePost() {
     loading.value = true; // Set loading to true when submitting the form
 
     try {
+        const formData = new FormData()
+        formData.append("image", uploadedImage.value)
+        formData.append("userUuid", route.query.uuid)
+        formData.append("Title", title.value)
+        formData.append("Snippet", snippet.value)
+        formData.append("Body", body.value)
         await new Promise((res) => setTimeout(res, 2000))
-        const response = await PostsServices.updatePost({
-            Title: title.value,
-            Snippet: snippet.value,
-            Body: body.value,
-        }, route.params.uuid)
+        const response = await PostsServices.updatePost(formData, route.params.uuid)
         title.value = ""
         snippet.value = ""
         body.value = ""
@@ -398,4 +464,69 @@ async function updatePost() {
         opacity: 1;
     }
 }
+
+/* start change-img-account-box  */
+
+.chang-img-box #display-account-img {
+    width: 150px;
+    height: 150px;
+}
+
+.chang-img-box .edit-button-wrapper {
+    width: 300px;
+    max-width: 100%;
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.chang-img-box .edit-button-wrapper p {
+    line-height: 1.7;
+}
+
+.chang-img-box .edit-button-wrapper #reset-account-img {
+    width: fit-content;
+    padding: 10px;
+    margin: 0;
+}
+
+@media (max-width: 575.98px) {
+    .chang-img-box .edit-button-wrapper {
+        width: 145px;
+        font-size: 14px;
+        justify-content: center;
+    }
+
+    .chang-img-box .edit-button-wrapper .file-upload {
+        height: initial;
+    }
+
+    .chang-img-box .edit-button-wrapper #reset-account-img,
+    .chang-img-box .edit-button-wrapper .file-upload label {
+        padding: 0.469rem 1.375rem;
+        font-size: 12px;
+    }
+
+    .chang-img-box .edit-button-wrapper p {
+        text-align: center;
+        line-height: 1.5;
+    }
+
+    .chang-img-box #display-account-img {
+        width: 120px;
+        height: 120px;
+    }
+}
+
+@media (max-width: 351.98px) {
+    .chang-img-box .edit-button-wrapper .file-upload {
+        margin-right: 1rem !important;
+    }
+
+    .chang-img-box .edit-button-wrapper #reset-account-img {
+        margin-bottom: 1rem;
+    }
+}
+
+/* end change-img-account-box  */
 </style>

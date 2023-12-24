@@ -1,12 +1,44 @@
 <template>
     <div class=" container px-8 m-auto">
-        <div class="create mx-auto my-5">
+        <div
+            class="create shadow-[0_7px_29px_0_rgba(100,100,111,0.2)] rounded-[10px] p-5 w-[500px] max-w-full mx-auto my-10">
             <h1> Create Post</h1>
-            <form @submit.prevent="create">
-                <input v-model="title" type="text" name="title" placeholder="Title">
-                <input v-model="snippet" type="text" name="snippet" placeholder="Snippet">
-                <textarea v-model="body" name="body" placeholder="Post" cols="30" rows="10"></textarea>
-                <div class="error" v-html="error" v-if="error"></div>
+            <form class="flex flex-col gap-[10px]" @submit.prevent="create">
+                <div class="gap-4 flex items-end chang-img-box mb-4">
+                    <img ref="image" class="block rounded border-2 border-[#1F2937]" src="/src/assets/img/placeHolder.jpg"
+                        alt="Post image" id="display-account-img">
+                    <div class="edit-button-wrapper">
+                        <div
+                            class=" border border-[#b1b1b1] transition-all duration-300 text-[#585858] font-medium rounded h-[45px] max-w-full hover:border-[#1F2937] mb-3 me-3 ">
+                            <input class="hidden" type="file" name="image" @change="uploadImage" id="account-img">
+                            <label
+                                class="flex items-center justify-center py-[0.6rem] px-[0.75rem] cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap h-full  "
+                                for="account-img">
+                                <i class="fa-solid fa-arrow-up-from-bracket fa-fw inline sm:hidden"></i>
+                                <span class="hidden sm:inline">Choose image</span>
+
+                            </label>
+                        </div>
+                        <button type="button" id="reset-account-img"
+                            class="text-white font-medium border-0 rounded transition-all duration-300 max-h-full py-[6px] px-[30px] bg-[#1F2937] flex items-center justify-center hover:bg-[#2f4056]"
+                            @click="resetImage">
+                            <i class="fa-solid fa-rotate-left fa-fw inline sm:hidden"></i>
+                            <span class="hidden sm:inline">Reset</span>
+                        </button>
+                        <p class="my-0 text-[#585858]">Only JPEG, JPG, PNG are allowed</p>
+                    </div>
+                </div>
+                <!-- <input type="file" name="image" @change="(e) => image = e.target.files[0]"> -->
+                <input
+                    class="p-[15px] border-0 bg-[#eef5fc] rounded-[5px] text-[#6a737c] caret-[#6a737c] focus:outline-none"
+                    v-model="title" type="text" name="title" placeholder="Title">
+                <input
+                    class="p-[15px] border-0 bg-[#eef5fc] rounded-[5px] text-[#6a737c] caret-[#6a737c] focus:outline-none"
+                    v-model="snippet" type="text" name="snippet" placeholder="Snippet">
+                <textarea
+                    class="p-[15px] border-0 bg-[#eef5fc] rounded-[5px] text-[#6a737c] caret-[#6a737c] focus:outline-none"
+                    v-model="body" name="body" placeholder="Post" cols="30" rows="10"></textarea>
+                <div class="bg-red-600 rounded-[5px] w-fit p-2 text-white my-0 mx-auto" v-html="error" v-if="error"></div>
                 <div v-else v-if="loading" class="loader">
                     <div>
                         <ul>
@@ -55,27 +87,25 @@
                         </ul>
                     </div><span>Loading</span>
                 </div>
-                <button type="submit" :disabled="loading">Create</button>
+                <button
+                    class="bg-[#1F2937] text-white py-[15px] px-[20px] border-0 rounded font-semibold cursor-pointer w-fit mt-5 mx-auto mb-0 transition-all duration-300 hover:bg-[#2f4056] "
+                    type="submit" :disabled="loading">Create</button>
             </form>
             <div id="toast"
                 class="fixed top-24 right-5 flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow dark:text-gray-400 dark:bg-gray-800"
-                role="alert" v-if="success.length || danger.length">
-                <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg" :class="{
-                    'text-green-500 bg-green-100 dark:bg-green-800 dark:text-green-200': success.length,
-                    'text-red-500 bg-red-100 dark:bg-red-800 dark:text-red-200': danger.length
-                }">
+                role="alert" v-if="danger.length">
+                <div
+                    class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg text-red-500 bg-red-100 dark:bg-red-800 dark:text-red-200">
                     <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
                         viewBox="0 0 20 20">
-                        <path v-if="success.length"
-                            d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" />
-                        <path v-else
+                        <path
                             d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z" />
 
                     </svg>
-                    <span class="sr-only">{{ success.length ? 'Check' : 'Error' }} icon</span>
+                    <span class="sr-only">Error icon</span>
                 </div>
-                <div class="ms-3 text-sm font-normal">{{ success || danger }}</div>
-                <button type="button" @click="success = ''; danger = ''"
+                <div class="ms-3 text-sm font-normal">{{ danger }}</div>
+                <button type="button" @click="danger = ''"
                     class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700"
                     aria-label="Close">
                     <span class="sr-only">Close</span>
@@ -94,37 +124,64 @@
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { PostsServices } from '@/services/PostsServices';
-
+const uploadedImage = ref("")
 const title = ref("")
 const snippet = ref("")
 const body = ref("")
 let error = ref(null)
 let loading = ref(false);
-let success = ref("")
 let danger = ref("")
 const route = useRoute()
 const router = useRouter()
+const image = ref(null)
+function uploadImage(e) {
+    const uploadedPostImage = e.target.files[0]
+    const allowedTypes = ["jpeg", "png", "jpg"]
+    if (!allowedTypes.includes(uploadedPostImage.name.split(".").pop().toLowerCase())) {
+        image.value.src = "/src/assets/img/NoImagePlaceholder.png"
+    } else {
+
+        let currentImage = URL.createObjectURL(uploadedPostImage)
+        image.value.src = currentImage
+        image.value.onload = function () {
+            URL.revokeObjectURL(image.value.src)
+        }
+    }
+    uploadedImage.value = uploadedPostImage;
+
+
+}
+function resetImage(e) {
+    image.value.src = "/src/assets/img/placeHolder.jpg"
+    uploadedImage.value = ""
+    e.currentTarget.previousSibling.firstChild.value = ""
+
+
+}
 async function create() {
     error.value = null;
     loading.value = true; // Set loading to true when submitting the form
-
     try {
+        const formData = new FormData()
+        formData.append("image", uploadedImage.value)
+        formData.append("userUuid", route.query.uuid)
+        formData.append("Title", title.value)
+        formData.append("Snippet", snippet.value)
+        formData.append("Body", body.value)
         await new Promise((res) => setTimeout(res, 2000))
-        const response = await PostsServices.createPost({
-            userUuid: route.query.uuid,
-            Title: title.value,
-            Snippet: snippet.value,
-            Body: body.value,
-        })
+        const response = await PostsServices.createPost(formData)
         title.value = ""
         snippet.value = ""
         body.value = ""
         error.value = null
-        success.value = response.data.message
-        setTimeout(() => {
+        router.push({
+            name: response.data.redirect,
+            query: {
+                uuid: route.query.uuid,
+                success: response.data.message,
+            }
+        })
 
-            router.push({ name: response.data.redirect, query: { uuid: route.query.uuid } })
-        }, 5000)
     }
     catch (err) {
         if (err.response.status == 401 || err.response.status == 500) {
@@ -142,48 +199,12 @@ async function create() {
 </script>
 
 <style scoped>
-.create {
-    box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
-    border-radius: 10px;
-    padding: 20px;
-    width: 400px;
-    max-width: 100%;
-}
-
 .create h1 {
     padding-bottom: 20px;
     text-align: center;
 }
 
-.create form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
 
-form input,
-form textarea {
-    padding: 15px;
-    border: 0;
-    background-color: #eef5fc;
-    border-radius: 5px;
-    color: #6a737c;
-    caret-color: auto;
-}
-
-form input:focus,
-form textarea:focus {
-    outline: none;
-}
-
-form .error {
-    background-color: #fd3939;
-    border-radius: 5px;
-    width: fit-content;
-    padding: 8px;
-    color: #fff;
-    margin: 0 auto;
-}
 
 .loader {
     --background: linear-gradient(135deg, #6c8ebb, rgb(31 41 55));
@@ -387,21 +408,69 @@ form .error {
 }
 
 
-form>button {
 
-    background-color: #1F2937;
-    color: #fff;
-    padding: 15px 20px;
-    border: 0;
-    border-radius: 5px;
-    font-weight: 600;
-    cursor: pointer;
+/* start change-img-account-box  */
+
+.chang-img-box #display-account-img {
+    width: 150px;
+    height: 150px;
+}
+
+.chang-img-box .edit-button-wrapper {
+    width: 300px;
+    max-width: 100%;
+    display: flex;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.chang-img-box .edit-button-wrapper p {
+    line-height: 1.7;
+}
+
+.chang-img-box .edit-button-wrapper #reset-account-img {
     width: fit-content;
-    margin: 20px auto 0;
-    transition: 0.3s;
+    padding: 10px;
+    margin: 0;
 }
 
-form>button:hover {
-    background-color: #2f4056;
+@media (max-width: 575.98px) {
+    .chang-img-box .edit-button-wrapper {
+        width: 145px;
+        font-size: 14px;
+        justify-content: center;
+    }
+
+    .chang-img-box .edit-button-wrapper .file-upload {
+        height: initial;
+    }
+
+    .chang-img-box .edit-button-wrapper #reset-account-img,
+    .chang-img-box .edit-button-wrapper .file-upload label {
+        padding: 0.469rem 1.375rem;
+        font-size: 12px;
+    }
+
+    .chang-img-box .edit-button-wrapper p {
+        text-align: center;
+        line-height: 1.5;
+    }
+
+    .chang-img-box #display-account-img {
+        width: 120px;
+        height: 120px;
+    }
 }
+
+@media (max-width: 351.98px) {
+    .chang-img-box .edit-button-wrapper .file-upload {
+        margin-right: 1rem !important;
+    }
+
+    .chang-img-box .edit-button-wrapper #reset-account-img {
+        margin-bottom: 1rem;
+    }
+}
+
+/* end change-img-account-box  */
 </style>
